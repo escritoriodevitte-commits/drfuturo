@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>drfuturo — Plataforma Jurídica Inteligente</title>
+  <meta name="description" content="drfuturo — Plataforma jurídica com IA, RAG, integração DataJud CNJ, geração de peças e análise estratégica. Powered by GLM 5.2.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">⚡</div>
+      <div>
+        <div class="brand-title">drfuturo</div>
+        <div class="brand-sub">Plataforma Jurídica Inteligente · RAG + DataJud CNJ</div>
+      </div>
+    </div>
+    <div class="topbar-meta">
+      <span>✦</span>
+      <span>Powered by GLM 5.2</span>
+      <span>·</span>
+      <span class="gold">Persona: Aury Lopes Jr + Badaró + Bottini + Nucci</span>
+    </div>
+  </header>
+
+  <!-- TABS BAR -->
+  <nav class="tabs-bar">
+    <button class="tab-btn active" data-tab="chat">💬 Chat</button>
+    <button class="tab-btn" data-tab="search">🔍 Busca</button>
+    <button class="tab-btn" data-tab="pieces">📄 Peças</button>
+    <button class="tab-btn" data-tab="strategy">🎯 Estratégia</button>
+    <button class="tab-btn" data-tab="audiencia">⚖️ Audiências</button>
+    <button class="tab-btn" data-tab="lawsuits">🔎 Processos</button>
+    <button class="tab-btn" data-tab="documents">📚 Documentos</button>
+    <button class="tab-btn" data-tab="cases">📁 Casos</button>
+    <button class="tab-btn" data-tab="config">⚙️ Config</button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ===== CHAT TAB ===== -->
+    <section class="tab-panel active" id="tab-chat">
+      <div class="chat-grid">
+        <aside class="chat-sidebar">
+          <div class="sidebar-header">
+            <span class="sidebar-title">Conversas</span>
+            <button class="btn-icon" onclick="newConversation()" title="Nova conversa">＋</button>
+          </div>
+          <div class="sidebar-list" id="conv-list"></div>
+        </aside>
+        <div class="chat-main">
+          <div class="chat-header">
+            <span class="chat-title" id="chat-title">Novo chat</span>
+            <span class="badge badge-gold">GLM 5.2</span>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="empty-state">
+              <div class="empty-icon">⚖️</div>
+              <div class="empty-title">JUS·AI Criminal pronto para atuar</div>
+              <div class="empty-text">Agente sênior com persona de Aury Lopes Jr, Badaró, Bottini e Nucci. Faça uma pergunta jurídica ou peça uma peça processual.</div>
+              <div class="flex flex-wrap gap-2" style="justify-content:center; max-width: 500px;">
+                <button class="btn btn-outline btn-sm" onclick="useSuggestion('Quando cabe HC versus RESE?')">Quando cabe HC vs RESE?</button>
+                <button class="btn btn-outline btn-sm" onclick="useSuggestion('Cadeia de custódia em tráfico de drogas')">Cadeia de custódia</button>
+                <button class="btn btn-outline btn-sm" onclick="useSuggestion('Estratégia para júri — legitima defesa')">Estratégia júri</button>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <div class="chat-input-row">
+              <textarea class="chat-input" id="chat-input" placeholder="Pergunte sobre direito penal, peças, jurisprudência, estratégia..." rows="1"></textarea>
+              <button class="btn" id="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+            <div class="chat-hint">Enter envia · Shift+Enter quebra linha · Busca jurisprudência automática</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SEARCH TAB ===== -->
+    <section class="tab-panel" id="tab-search">
+      <div class="search-bar">
+        <input type="text" class="form-input" id="search-input" placeholder="Buscar: jurisprudência STJ STF · artigos CP/CPP · tema jurídico...">
+        <button class="btn" onclick="doSearch()">🔍 Buscar</button>
+      </div>
+      <div class="search-filters" style="padding: 0 16px 12px;">
+        <button class="filter-btn active" data-filter="all">Todas as fontes</button>
+        <button class="filter-btn" data-filter="web">Web (tempo real)</button>
+        <button class="filter-btn" data-filter="local">Base local CP/CPP</button>
+      </div>
+      <div class="search-results" id="search-results">
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">Busca jurídica unificada</div>
+          <div class="empty-text">Pesquise simultaneamente na web (JusBrasil, STJ, STF, Planalto) e na base local de artigos do CP, CPP e CF.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PIECES TAB ===== -->
+    <section class="tab-panel" id="tab-pieces">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">📄 Gerador de Peças Penais</div>
+          <div class="pieces-form-content">
+            <div class="form-group">
+              <label class="form-label">Tipo de peça *</label>
+              <select class="form-select" id="piece-type" onchange="onPieceChange()">
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+            <div id="piece-info"></div>
+            <div class="form-group">
+              <label class="form-label">Qualificação do cliente</label>
+              <textarea class="form-textarea" id="piece-client" placeholder="Nome, nacionalidade, estado civil, profissão, RG, CPF..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Endereçamento</label>
+              <input type="text" class="form-input" id="piece-court" placeholder="Ex: Egrégio Tribunal de Justiça">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Número do processo</label>
+              <input type="text" class="form-input" id="piece-number" placeholder="0000000-00.0000.0.00.0000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fatos do caso *</label>
+              <textarea class="form-textarea" id="piece-facts" placeholder="Descreva os fatos..." style="min-height: 100px;"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contexto adicional</label>
+              <textarea class="form-textarea" id="piece-context" placeholder="Tese, precedentes, fundamentos..."></textarea>
+            </div>
+            <button class="btn btn-block" id="piece-generate-btn" onclick="generatePiece()">✦ Gerar peça</button>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header">
+            <span id="result-title">Resultado</span>
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-outline" onclick="copyResult()" id="copy-btn" style="display:none;">📋 Copiar</button>
+            </div>
+          </div>
+          <div class="pieces-result-content" id="piece-result">
+            <div class="empty-state">
+              <div class="empty-icon">📄</div>
+              <div class="empty-title">Catálogo de 41 peças criminais</div>
+              <div class="empty-text">Selecione uma peça no formulário. O agente redige com técnica de Aury Lopes Jr + Badaró + Bottini + Nucci.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== STRATEGY TAB ===== -->
+    <section class="tab-panel" id="tab-strategy">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">🎯 Estratégia Defensiva</div>
+          <div class="pieces-form-content">
+            <div class="form-group">
+              <label class="form-label">Tipificação alegada</label>
+              <input type="text" class="form-input" id="strat-crime" placeholder="Ex: art. 121 CP (homicídio)">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descrição do caso *</label>
+              <textarea class="form-textarea" id="strat-case" placeholder="Narrativa do caso..." style="min-height: 140px;"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Objetivos do cliente</label>
+              <textarea class="form-textarea" id="strat-goals" placeholder="Absolvição · redução de pena · liberdade..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contexto adicional</label>
+              <textarea class="form-textarea" id="strat-context" placeholder="Informações extras..."></textarea>
+            </div>
+            <button class="btn btn-block" id="strat-generate-btn" onclick="generateStrategy()">✦ Gerar estratégia</button>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header">
+            <span id="strat-title">Análise estratégica</span>
+            <button class="btn btn-sm btn-outline" onclick="copyStrategy()" id="copy-strat-btn" style="display:none;">📋 Copiar</button>
+          </div>
+          <div class="pieces-result-content" id="strat-result">
+            <div class="empty-state">
+              <div class="empty-icon">🎯</div>
+              <div class="empty-title">Estratégia em 4 blocos</div>
+              <div class="empty-text">Fatos · Direito · Prova · Narrativa + tese recomendada + peças + riscos + bibliografia</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== AUDIENCIA TAB ===== -->
+    <section class="tab-panel" id="tab-audiencia">
+      <div id="audiencia-list-view" style="flex:1; display:flex; flex-direction:column;">
+        <div class="pieces-header" style="justify-content: space-between;">
+          <span>⚖️ Audiências</span>
+          <button class="btn btn-sm" onclick="showSetupForm()">＋ Nova audiência</button>
+        </div>
+        <div class="pieces-result-content" id="audiencia-list">
+          <div class="empty-state">
+            <div class="empty-icon">⚖️</div>
+            <div class="empty-title">Audiências criminais</div>
+            <div class="empty-text">Capture notas ao vivo durante a audiência. Rastreie contradições, perguntas e nulidades. Gere sustentação oral final.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETUP FORM (hidden) -->
+      <div id="audiencia-setup-view" style="display:none; flex:1; overflow-y:auto; padding:16px; max-width:600px; margin:0 auto;">
+        <button class="btn btn-sm btn-outline" onclick="showListView()" style="margin-bottom:16px;">← Voltar</button>
+        <h2 style="font-family:'Playfair Display',serif; color:var(--primary); margin-bottom:16px;">Nova Audiência</h2>
+        <div class="form-group">
+          <label class="form-label">Tipo de audiência *</label>
+          <select class="form-select" id="setup-type" onchange="onSetupTypeChange()">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <div id="setup-info"></div>
+        <div class="form-group">
+          <label class="form-label">Título do caso *</label>
+          <input type="text" class="form-input" id="setup-title" placeholder="Ex: João da Silva — Ação Penal 0001234">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Resumo dos fatos</label>
+          <textarea class="form-textarea" id="setup-facts" placeholder="Descreva os fatos..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tese central da defesa</label>
+          <textarea class="form-textarea" id="setup-thesis" placeholder="Ex: Legítima defesa · Negativa de autoria..."></textarea>
+        </div>
+        <button class="btn btn-block" onclick="startSession()">▶ Iniciar audiência e captura</button>
+      </div>
+
+      <!-- LIVE CAPTURE (hidden) -->
+      <div id="audiencia-live-view" style="display:none; flex:1;">
+        <div class="audiencia-grid">
+          <div class="audiencia-main">
+            <div class="chat-header">
+              <div class="flex items-center gap-2">
+                <button class="btn btn-sm btn-outline" onclick="exitLive()">← Sair</button>
+                <span class="chat-title" id="live-title">Audiência</span>
+                <span class="badge" style="color:var(--accent); border-color:rgba(185,28,28,0.4);">● AO VIVO</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="timer" id="timer">00:00:00</span>
+                <button class="btn-icon" onclick="toggleTimer()" id="timer-btn">▶</button>
+                <button class="btn-icon" onclick="resetTimer()">↺</button>
+              </div>
+            </div>
+            <div class="note-categories">
+              <button class="note-cat-btn active" data-cat="depoimento" onclick="setNoteCat('depoimento')">💬 Depoimento</button>
+              <button class="note-cat-btn cat-contradicao" data-cat="contradicao" onclick="setNoteCat('contradicao')">⚡ Contradição</button>
+              <button class="note-cat-btn" data-cat="pergunta" onclick="setNoteCat('pergunta')">❓ Pergunta</button>
+              <button class="note-cat-btn" data-cat="nulidade" onclick="setNoteCat('nulidade')">⚠️ Nulidade</button>
+              <button class="note-cat-btn" data-cat="prova" onclick="setNoteCat('prova')">📋 Prova</button>
+              <button class="note-cat-btn" data-cat="observacao" onclick="setNoteCat('observacao')">👁️ Observação</button>
+            </div>
+            <div class="note-input-row">
+              <input type="text" class="form-input" id="note-witness" placeholder="Testemunha (nome)">
+              <input type="text" class="form-input" id="note-page" placeholder="Página autos">
+              <button class="btn btn-sm" onclick="addNote()">＋ Add</button>
+            </div>
+            <textarea class="form-textarea note-textarea" id="note-content" placeholder="Anotar depoimento... (Ctrl+Enter para adicionar)" style="min-height:50px;"></textarea>
+            <div class="note-list" id="note-list"></div>
+            <div style="padding: 12px; border-top: 1px solid var(--border);">
+              <button class="btn btn-block" id="gen-argument-btn" onclick="generateArgument()">✦ Gerar sustentação oral final</button>
+            </div>
+          </div>
+          <div class="audiencia-side">
+            <div class="chat-header"><span class="chat-title">Teses do MP</span></div>
+            <div class="pieces-result-content" style="padding:12px;">
+              <div id="mp-theses-list"></div>
+              <div class="flex gap-2 mt-2">
+                <input type="text" class="form-input" id="mp-input" placeholder="Nova tese do MP..." style="font-size:11px;">
+                <button class="btn btn-sm btn-danger" onclick="addMpTese()">＋</button>
+              </div>
+              <div class="mt-3" id="stats-block"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARGUMENT VIEW (hidden) -->
+      <div id="audiencia-argument-view" style="display:none; flex:1; flex-direction:column;">
+        <div class="chat-header">
+          <div class="flex items-center gap-2">
+            <button class="btn btn-sm btn-outline" onclick="backToLive()">← Voltar às notas</button>
+            <span class="chat-title">Sustentação Oral</span>
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="copyArgument()">📋 Copiar</button>
+        </div>
+        <div class="pieces-result-content" id="argument-content"></div>
+      </div>
+    </section>
+
+    <!-- ===== LAWSUITS TAB (DataJud CNJ API) ===== -->
+    <section class="tab-panel" id="tab-lawsuits">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">🔎 Consulta de Processos · DataJud CNJ</div>
+          <div class="pieces-form-content">
+            <div class="status-card ok" style="margin-bottom:14px;">
+              <div class="status-title">✓ API Oficial CNJ</div>
+              <div class="status-text">Consulta gratuita via API DataJud do Conselho Nacional de Justiça. Sem necessidade de scraping ou captcha.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Número do processo (CNJ) *</label>
+              <input type="text" class="form-input" id="lawsuit-number" placeholder="0001234-56.2024.8.26.0100" style="font-family:monospace;">
+              <div class="form-hint">Formato CNJ: NNNNNNN-DD.AAAA.J.TR.OOOO</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tribunal (opcional)</label>
+              <select class="form-select" id="lawsuit-court">
+                <option value="">Auto-detectar pelo número</option>
+                <option value="TJSP">TJSP — São Paulo (e-SAJ)</option>
+                <option value="TJRJ">TJRJ — Rio de Janeiro</option>
+                <option value="TJMG">TJMG — Minas Gerais</option>
+                <option value="TJRS">TJRS — Rio Grande do Sul</option>
+                <option value="TJPR">TJPR — Paraná (Projudi)</option>
+                <option value="TRT2">TRT-2 — 2ª Região SP</option>
+                <option value="TRT3">TRT-3 — 3ª Região MG</option>
+                <option value="TRF1">TRF-1 — 1ª Região</option>
+                <option value="TRF3">TRF-3 — 3ª Região SP</option>
+                <option value="TRF4">TRF-4 — 4ª Região RS</option>
+              </select>
+              <div class="form-hint">Se auto-detecção falhar, selecione manualmente.</div>
+            </div>
+            <button class="btn btn-block" id="lawsuit-search-btn" onclick="searchLawsuit()">🔍 Consultar processo</button>
+
+            <div class="mt-3" id="lawsuit-history"></div>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header">
+            <span id="lawsuit-result-title">Detalhes do Processo</span>
+            <button class="btn btn-sm btn-outline" onclick="analyzeLawsuitWithAI()" id="lawsuit-ai-btn" style="display:none;">✦ Análise IA</button>
+          </div>
+          <div class="pieces-result-content" id="lawsuit-result">
+            <div class="empty-state">
+              <div class="empty-icon">🔎</div>
+              <div class="empty-title">Consulta de processos judiciais</div>
+              <div class="empty-text">Digite um número CNJ à esquerda. Buscamos via API oficial do CNJ (DataJud), sem scraping. Dados: partes, movimentações, classe, assunto, valor da causa.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== DOCUMENTS TAB (RAG) ===== -->
+    <section class="tab-panel" id="tab-documents">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">📚 RAG — Documentos com Contexto</div>
+          <div class="pieces-form-content">
+            <div class="status-card ok" style="margin-bottom:14px;">
+              <div class="status-title">✓ RAG sem alucinação</div>
+              <div class="status-text">Cole o texto do documento (petições, sentenças, doutrina). A IA responde apenas com base no conteúdo fornecido, citando trechos.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Título do documento</label>
+              <input type="text" class="form-input" id="doc-title" placeholder="Ex: Sentença Processo 0001234-56">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Texto do documento *</label>
+              <textarea class="form-textarea" id="doc-text" placeholder="Cole aqui o texto integral do documento (petições, sentenças, contratos, doutrina...)" style="min-height:200px; font-family:monospace; font-size:12px;"></textarea>
+              <div class="form-hint" id="doc-char-count">0 caracteres</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Pergunta *</label>
+              <textarea class="form-textarea" id="doc-question" placeholder="O que você quer saber deste documento? Ex: Qual a tese do réu? Quais foram os pedidos? Há nulidades?" style="min-height:80px;"></textarea>
+            </div>
+            <button class="btn btn-block" id="doc-ask-btn" onclick="askDocument()">✦ Analisar com RAG</button>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header">
+            <span id="doc-result-title">Análise do Documento</span>
+            <button class="btn btn-sm btn-outline" onclick="clearDocument()" id="doc-clear-btn" style="display:none;">🗑 Limpar</button>
+          </div>
+          <div class="pieces-result-content" id="doc-result">
+            <div class="empty-state">
+              <div class="empty-icon">📚</div>
+              <div class="empty-title">RAG — Retrieval-Augmented Generation</div>
+              <div class="empty-text">Cole um documento à esquerda, faça uma pergunta, e a IA responde baseada APENAS no conteúdo fornecido — sem inventar jurisprudência.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CASES TAB ===== -->
+    <section class="tab-panel" id="tab-cases">
+      <div class="cases-grid">
+        <div class="cases-list">
+          <div class="pieces-header" style="justify-content: space-between;">
+            <span>📁 Casos</span>
+            <button class="btn btn-sm" onclick="showCaseForm()">＋ Novo</button>
+          </div>
+          <div class="pieces-result-content" id="cases-list-content">
+            <div class="empty-state">
+              <div class="empty-icon">📁</div>
+              <div class="empty-text">Nenhum caso. Clique em + para criar.</div>
+            </div>
+          </div>
+        </div>
+        <div class="case-detail">
+          <div class="pieces-header" id="case-detail-title">Detalhes do caso</div>
+          <div class="pieces-result-content" id="case-detail-content">
+            <div class="empty-state">
+              <div class="empty-icon">📁</div>
+              <div class="empty-text">Selecione um caso para ver detalhes.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CONFIG TAB (SIMPLIFICADO) ===== -->
+    <section class="tab-panel" id="tab-config">
+      <div class="config-grid">
+        <div class="config-form">
+          <div class="pieces-header">⚙️ Configuração</div>
+          <div class="config-content">
+            <div id="config-status"></div>
+
+            <!-- Selecionar provedor -->
+            <div style="background:rgba(201,169,97,0.05); border:2px solid rgba(201,169,97,0.3); border-radius:12px; padding:20px; margin-bottom:20px;">
+              <div style="font-size:14px; color:var(--primary); font-weight:600; margin-bottom:12px;">
+                🤖 Escolha o provedor de IA
+              </div>
+
+              <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; margin-bottom:16px;">
+                <button class="provider-btn" onclick="selectProvider('zai')" data-prov="zai"
+                  style="padding:12px; border:2px solid var(--border); border-radius:8px; background:var(--bg-soft); color:var(--fg); cursor:pointer; font-size:12px;">
+                  <div style="font-weight:600; color:var(--primary);">Z.AI (Zhipu)</div>
+                  <div style="font-size:10px; color:var(--muted); margin-top:2px;">GLM-5, GLM-5.1, GLM-4</div>
+                </button>
+                <button class="provider-btn" onclick="selectProvider('openai')" data-prov="openai"
+                  style="padding:12px; border:2px solid var(--border); border-radius:8px; background:var(--bg-soft); color:var(--fg); cursor:pointer; font-size:12px;">
+                  <div style="font-weight:600; color:var(--primary);">OpenAI</div>
+                  <div style="font-size:10px; color:var(--muted); margin-top:2px;">GPT-4o, GPT-4 Turbo</div>
+                </button>
+                <button class="provider-btn" onclick="selectProvider('deepseek')" data-prov="deepseek"
+                  style="padding:12px; border:2px solid var(--border); border-radius:8px; background:var(--bg-soft); color:var(--fg); cursor:pointer; font-size:12px;">
+                  <div style="font-weight:600; color:var(--primary);">DeepSeek</div>
+                  <div style="font-size:10px; color:var(--muted); margin-top:2px;">V3, R1 (mais barato)</div>
+                </button>
+                <button class="provider-btn" onclick="selectProvider('claude')" data-prov="claude"
+                  style="padding:12px; border:2px solid var(--border); border-radius:8px; background:var(--bg-soft); color:var(--fg); cursor:pointer; font-size:12px;">
+                  <div style="font-weight:600; color:var(--primary);">Claude (Anthropic)</div>
+                  <div style="font-size:10px; color:var(--muted); margin-top:2px;">Sonnet 4.5, Opus 4</div>
+                </button>
+              </div>
+
+              <div id="provider-info" style="font-size:11px; color:var(--muted); margin-bottom:14px;"></div>
+
+              <!-- Campo chave -->
+              <div style="font-size:14px; color:var(--primary); font-weight:600; margin-bottom:8px;">
+                🔑 Cole sua chave aqui
+              </div>
+
+              <div style="position:relative; margin-bottom:12px;">
+                <input type="password" class="form-input" id="cfg-apikey"
+                  placeholder="Cole sua chave API"
+                  style="padding:12px 44px 12px 14px; font-family:monospace; font-size:13px;">
+                <button onclick="toggleKeyVisibility()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:16px;" id="eye-btn">👁</button>
+              </div>
+
+              <!-- Seletor de modelo (atualiza dinamicamente) -->
+              <div class="form-group" style="margin-bottom:12px;">
+                <label class="form-label" style="font-size:11px;">Modelo</label>
+                <select class="form-select" id="cfg-model" style="font-size:12px;"></select>
+              </div>
+
+              <button class="btn btn-block" onclick="quickSave()" style="font-size:14px; padding:12px;">
+                ✅ Salvar e Testar
+              </button>
+
+              <div id="quick-result" style="margin-top:14px;"></div>
+            </div>
+
+            <!-- Detalhes avançados -->
+            <details style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
+              <summary style="cursor:pointer; font-size:12px; color:var(--primary); padding:8px 0;">
+                ⚙️ Configurações avançadas
+              </summary>
+              <div style="padding-top:12px;">
+                <div class="form-group">
+                  <label class="form-label">Base URL (automático por provedor)</label>
+                  <input type="text" class="form-input" id="cfg-baseurl">
+                  <div class="form-hint">Mudado automaticamente ao selecionar provedor</div>
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="clearConfig()" id="clear-btn" style="display:none;">🗑️ Remover chave</button>
+              </div>
+            </details>
+
+            <div id="test-result" class="mt-3"></div>
+          </div>
+        </div>
+        <div class="config-side">
+          <div class="pieces-header">Como obter cada chave</div>
+          <div class="config-side-content">
+            <div style="font-size:12px; color:var(--fg-soft); line-height:1.7;">
+
+              <!-- Z.AI -->
+              <div style="padding:10px; background:rgba(201,169,97,0.05); border-left:2px solid var(--primary); border-radius:4px; margin-bottom:10px;">
+                <div style="font-weight:600; color:var(--primary); font-size:13px;">🤖 Z.AI (Zhipu)</div>
+                <div style="font-size:11px; margin-top:4px;">
+                  🔗 <a href="https://z.ai/manage-apikey/apikey-list" target="_blank" style="color:var(--primary);">z.ai/manage-apikey/apikey-list</a><br>
+                  📋 Formato: <code>32hex.16chars</code> (49 chars com ponto)<br>
+                  💰 Free: créditos iniciais · Plano: $5-50/mês<br>
+                  ⚡ Modelos: GLM-5.1, GLM-5, GLM-4
+                </div>
+              </div>
+
+              <!-- OpenAI -->
+              <div style="padding:10px; background:rgba(74,222,128,0.05); border-left:2px solid #4ADE80; border-radius:4px; margin-bottom:10px;">
+                <div style="font-weight:600; color:#4ADE80; font-size:13px;">🟢 OpenAI</div>
+                <div style="font-size:11px; margin-top:4px;">
+                  🔗 <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#4ADE80;">platform.openai.com/api-keys</a><br>
+                  📋 Formato: <code>sk-...</code><br>
+                  💰 Pago: $5 mínimo · GPT-4o ~$5/1M tokens<br>
+                  ⚡ Modelos: GPT-4o, GPT-4o-mini
+                </div>
+              </div>
+
+              <!-- DeepSeek -->
+              <div style="padding:10px; background:rgba(79,138,201,0.05); border-left:2px solid #4F8AC9; border-radius:4px; margin-bottom:10px;">
+                <div style="font-weight:600; color:#4F8AC9; font-size:13px;">🔵 DeepSeek</div>
+                <div style="font-size:11px; margin-top:4px;">
+                  🔗 <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#4F8AC9;">platform.deepseek.com/api_keys</a><br>
+                  📋 Formato: <code>sk-...</code><br>
+                  💰 Muito barato: ~$0.27/1M tokens (50x mais barato que OpenAI)<br>
+                  ⚡ Modelos: V3 (chat), R1 (raciocínio)
+                </div>
+              </div>
+
+              <!-- Claude -->
+              <div style="padding:10px; background:rgba(217,119,6,0.05); border-left:2px solid #D97706; border-radius:4px; margin-bottom:14px;">
+                <div style="font-weight:600; color:#D97706; font-size:13px;">🟠 Claude (Anthropic)</div>
+                <div style="font-size:11px; margin-top:4px;">
+                  🔗 <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#D97706;">console.anthropic.com/settings/keys</a><br>
+                  📋 Formato: <code>sk-ant-...</code><br>
+                  💰 $5 crédito grátis · Sonnet ~$3/1M tokens<br>
+                  ⚡ Modelos: Sonnet 4.5, Opus 4
+                </div>
+              </div>
+
+              <div style="border-top:1px solid var(--border); margin-top:12px; padding-top:12px;">
+                <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.15em; color:var(--accent); font-weight:600; margin-bottom:8px;">💡 Recomendação</div>
+                <ul style="font-size:11px; color:var(--fg-soft); padding-left:16px; line-height:1.6;">
+                  <li><strong>DeepSeek</strong> — melhor custo-benefício</li>
+                  <li><strong>Claude Sonnet</strong> — melhor para escrita jurídica</li>
+                  <li><strong>GPT-4o</strong> — mais conhecido</li>
+                  <li><strong>Z.AI GLM-5</strong> — melhor em português</li>
+                </ul>
+              </div>
+
+              <div style="border-top:1px solid var(--border); margin-top:12px; padding-top:12px;">
+                <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.15em; color:var(--accent); font-weight:600; margin-bottom:8px;">🔒 Segurança</div>
+                <ul style="font-size:11px; color:var(--muted); padding-left:16px; line-height:1.6;">
+                  <li>Chave fica salva apenas no seu navegador</li>
+                  <li>Nunca enviada para outro servidor além do provedor</li>
+                  <li>Para limpar: botão "Remover chave" ou F12</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div>drfuturo v1.0 · GLM 5.2 · RAG · DataJud CNJ · Base CP/CPP/CF · 41 Peças · 5 Audiências</div>
+    <div class="footer-quote">"A defesa técnica começa no inquérito, não na sentença." — Aury Lopes Jr</div>
+  </footer>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
