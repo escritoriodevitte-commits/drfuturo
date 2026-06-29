@@ -54,6 +54,7 @@
     <button class="tab-btn" data-tab="cliente">👤 Cliente</button>
     <button class="tab-btn" data-tab="checklist">✅ Checklist</button>
     <button class="tab-btn" data-tab="honorarios">💰 Honorários</button>
+    <button class="tab-btn" data-tab="integracoes">🔗 Integrações</button>
     <button class="tab-btn" data-tab="config">⚙️ Config</button>
   </nav>
 
@@ -813,6 +814,121 @@
       </div>
     </section>
 
+    <!-- ===== INTEGRACOES TAB ===== -->
+    <section class="tab-panel" id="tab-integracoes">
+      <div style="padding:16px; overflow-y:auto; height:100%;" class="scroll-thin">
+
+        <!-- DataJud por Tema -->
+        <div class="pieces-grid" style="margin-bottom:24px;">
+          <div class="pieces-form">
+            <div class="pieces-header">🔍 Jurisprudência por Tema</div>
+            <div class="pieces-form-content">
+              <div class="status-card ok" style="margin-bottom:12px;">
+                <div class="status-title">✓ DataJud CNJ — busca por assunto</div>
+                <div class="status-text">Busca processos em múltiplos tribunais por tema. Clique no resultado para ver detalhes completos.</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tema / assunto *</label>
+                <input type="text" class="form-input" id="datajud-tema-input" placeholder="Ex: tráfico de drogas, homicídio, legítima defesa">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tribunal (opcional)</label>
+                <select class="form-select" id="datajud-tema-tribunal">
+                  <option value="">Todos os tribunais (TJSP, TJRJ, TJMG, TJRS, TRF3, TRF4)</option>
+                  <option value="TJSP">TJSP — São Paulo</option>
+                  <option value="TJRJ">TJRJ — Rio de Janeiro</option>
+                  <option value="TJMG">TJMG — Minas Gerais</option>
+                  <option value="TJRS">TJRS — Rio Grande do Sul</option>
+                  <option value="TRF3">TRF3 — 3ª Região (SP)</option>
+                  <option value="TRF4">TRF4 — 4ª Região (RS)</option>
+                </select>
+              </div>
+              <button class="btn btn-block" onclick="searchDataJudTema()">🔍 Buscar jurisprudência</button>
+            </div>
+          </div>
+          <div class="pieces-result">
+            <div class="result-header"><span>Resultados</span></div>
+            <div class="pieces-result-content" id="datajud-tema-result">
+              <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <div class="empty-title">Busca de jurisprudência por tema</div>
+                <div class="empty-text">Digite um tema (ex: "tráfico de drogas") e encontre processos relacionados em todos os tribunais.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Planalto -->
+        <div class="pieces-grid" style="margin-bottom:24px;">
+          <div class="pieces-form">
+            <div class="pieces-header">📜 Leis Federais (Planalto)</div>
+            <div class="pieces-form-content">
+              <div class="status-card ok" style="margin-bottom:12px;">
+                <div class="status-title">✓ Portal da Legislação</div>
+                <div class="status-text">Busca oficial no Planalto + LexML. Encontre leis, decretos, portarias e normas federais.</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Termo de busca *</label>
+                <input type="text" class="form-input" id="planalto-input" placeholder="Ex: Lei 11.343, Código Penal, decreto armas">
+              </div>
+              <button class="btn btn-block" onclick="searchPlanalto()">📜 Buscar no Planalto</button>
+            </div>
+          </div>
+          <div class="pieces-result">
+            <div class="result-header"><span>Resultados</span></div>
+            <div class="pieces-result-content" id="planalto-result">
+              <div class="empty-state">
+                <div class="empty-icon">📜</div>
+                <div class="empty-title">Busca de leis federais</div>
+                <div class="empty-text">Digite o nome ou número da lei. Busca no Portal da Legislação do Planalto.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DJ-e CNJ -->
+        <div class="pieces-grid">
+          <div class="pieces-form">
+            <div class="pieces-header">📰 Diário da Justiça (DJ-e)</div>
+            <div class="pieces-form-content">
+              <div class="status-card ok" style="margin-bottom:12px;">
+                <div class="status-title">✓ DJ-e — Comunicados Judiciais CNJ</div>
+                <div class="status-text">Busca oficial no Diário da Justiça Eletrônico. Encontre intimações, publicações e despachos.</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Número do processo</label>
+                <input type="text" class="form-input" id="dje-processo" placeholder="0001234-56.2024.8.26.0100" style="font-family:monospace;">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nome da parte</label>
+                <input type="text" class="form-input" id="dje-parte" placeholder="João da Silva">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Data início</label>
+                <input type="date" class="form-input" id="dje-inicio">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Data fim</label>
+                <input type="date" class="form-input" id="dje-fim">
+              </div>
+              <button class="btn btn-block" onclick="searchDJe()">📰 Buscar no DJ-e</button>
+            </div>
+          </div>
+          <div class="pieces-result">
+            <div class="result-header"><span>Resultados</span></div>
+            <div class="pieces-result-content" id="dje-result">
+              <div class="empty-state">
+                <div class="empty-icon">📰</div>
+                <div class="empty-title">Busca no Diário da Justiça</div>
+                <div class="empty-text">Digite o número do processo ou nome da parte para encontrar publicações oficiais.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <!-- ===== CONFIG TAB (SIMPLIFICADO) ===== -->
     <section class="tab-panel" id="tab-config">
       <div class="config-grid">
@@ -986,7 +1102,7 @@
 
   <!-- FOOTER -->
   <footer class="footer">
-    <div>drfuturo v3.0 · Claude · Vade Mecum · Áudio · Resumo Cliente · Checklist · Honorários · 19 abas</div>
+    <div>drfuturo v3.1 · Claude · 20 abas · DataJud · Planalto · DJ-e CNJ · Vade Mecum · Áudio · Honorários</div>
     <div class="footer-quote">"A defesa técnica começa no inquérito, não na sentença." — Aury Lopes Jr</div>
   </footer>
 </div>
@@ -998,6 +1114,7 @@
 <script src="features.js"></script>
 <script src="vade-mecum.js"></script>
 <script src="extras.js"></script>
+<script src="integrations.js"></script>
 <script>
 // Busca Vade Mecum
 function searchVadeMecum() {
