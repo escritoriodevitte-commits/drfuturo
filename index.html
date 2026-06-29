@@ -49,6 +49,11 @@
     <button class="tab-btn" data-tab="favoritos">⭐ Favoritos</button>
     <button class="tab-btn" data-tab="agenda">📆 Agenda</button>
     <button class="tab-btn" data-tab="templates">📝 Templates</button>
+    <button class="tab-btn" data-tab="vade-mecum">📚 Vade Mecum</button>
+    <button class="tab-btn" data-tab="audio">🎤 Áudio</button>
+    <button class="tab-btn" data-tab="cliente">👤 Cliente</button>
+    <button class="tab-btn" data-tab="checklist">✅ Checklist</button>
+    <button class="tab-btn" data-tab="honorarios">💰 Honorários</button>
     <button class="tab-btn" data-tab="config">⚙️ Config</button>
   </nav>
 
@@ -639,6 +644,175 @@
       </div>
     </section>
 
+    <!-- ===== VADE MECUM TAB ===== -->
+    <section class="tab-panel" id="tab-vade-mecum">
+      <div class="pieces-result" style="border:none; height:100%;">
+        <div class="result-header">
+          <span>📚 Vade Mecum Digital</span>
+          <span style="font-size:11px; color:var(--muted);">CP · CPP · CF</span>
+        </div>
+        <div class="pieces-result-content">
+          <div class="search-bar" style="padding:12px 0; border-bottom:1px solid var(--border); display:flex; gap:8px;">
+            <input type="text" class="form-input" id="vade-search" placeholder="Buscar artigo (ex: homicídio, habeas corpus, legitima defesa, art. 121)..." oninput="searchVadeMecum()">
+          </div>
+          <div id="vade-results" style="margin-top:16px;">
+            <div class="empty-state">
+              <div class="empty-icon">📚</div>
+              <div class="empty-title">Vade Mecum Digital</div>
+              <div class="empty-text">Busca em todos os artigos do Código Penal, Processo Penal e Constituição Federal. Digite um termo acima.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== AUDIO TAB ===== -->
+    <section class="tab-panel" id="tab-audio">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">🎤 Transcrição de Áudio</div>
+          <div class="pieces-form-content">
+            <div class="status-card ok" style="margin-bottom:14px;">
+              <div class="status-title">✓ Transcrição em tempo real</div>
+              <div class="status-text">Use o microfone para transcrever depoimentos, audiências ou reuniões. Funciona melhor no Chrome.</div>
+            </div>
+            <button class="btn btn-block" id="audio-btn" onclick="toggleRecording()" style="font-size:14px; padding:12px;">
+              🎤 Iniciar gravação
+            </button>
+            <div id="audio-status" style="text-align:center; padding:8px; font-size:11px;">
+              <span style="color:var(--muted);">Pronto para gravar</span>
+            </div>
+            <div class="form-group" style="margin-top:14px;">
+              <label class="form-label">Transcrição</label>
+              <textarea class="form-textarea" id="audio-transcript" placeholder="O texto aparecerá aqui durante a gravação. Você também pode colar texto manualmente." style="min-height:200px;"></textarea>
+            </div>
+            <button class="btn btn-block" id="audio-analyze-btn" onclick="sendAudioToAI()">✦ Analisar com IA</button>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header"><span>Análise</span></div>
+          <div class="pieces-result-content" id="audio-result">
+            <div class="empty-state">
+              <div class="empty-icon">🎤</div>
+              <div class="empty-title">Análise de áudio</div>
+              <div class="empty-text">Grave ou cole um texto. A IA vai resumir, identificar pontos-chave, contradições e sugerir perguntas.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CLIENTE TAB ===== -->
+    <section class="tab-panel" id="tab-cliente">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">👤 Resumo para Cliente</div>
+          <div class="pieces-form-content">
+            <div class="status-card ok" style="margin-bottom:14px;">
+              <div class="status-title">✓ Linguagem leiga</div>
+              <div class="status-text">Gere um resumo do andamento do processo em linguagem simples, sem juridiquês. Pronto para enviar ao cliente.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Título do caso *</label>
+              <input type="text" class="form-input" id="resumo-titulo" placeholder="Ex: João da Silva — Ação Penal 0001234-56">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nome do cliente</label>
+              <input type="text" class="form-input" id="resumo-cliente" placeholder="João da Silva">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descrição do caso *</label>
+              <textarea class="form-textarea" id="resumo-caso" placeholder="Resuma o caso em linguagem técnica (a IA vai converter para leiga)..." style="min-height:100px;"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Andamento atual</label>
+              <textarea class="form-textarea" id="resumo-andamento" placeholder="O que aconteceu até agora? (decisões, audiências, petições...)" style="min-height:80px;"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Próximos passos</label>
+              <textarea class="form-textarea" id="resumo-passos" placeholder="O que vai acontecer? (audiências, recursos, prazos...)" style="min-height:60px;"></textarea>
+            </div>
+            <button class="btn btn-block" id="resumo-btn" onclick="gerarResumoCliente()">✦ Gerar resumo</button>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header"><span>Resumo gerado</span></div>
+          <div class="pieces-result-content" id="resumo-result">
+            <div class="empty-state">
+              <div class="empty-icon">👤</div>
+              <div class="empty-title">Resumo para cliente</div>
+              <div class="empty-text">Preencha os dados do caso. A IA gera um resumo em linguagem leiga pronto para enviar.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CHECKLIST TAB ===== -->
+    <section class="tab-panel" id="tab-checklist">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">✅ Checklist por Tipo</div>
+          <div class="pieces-form-content">
+            <div class="form-group">
+              <label class="form-label">Tipo de caso</label>
+              <select class="form-select" id="checklist-tipo" onchange="loadChecklist()"></select>
+            </div>
+            <div class="form-hint">Selecione um tipo para carregar o checklist completo.</div>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header"><span>Itens</span></div>
+          <div class="pieces-result-content" id="checklist-content">
+            <div class="empty-state">
+              <div class="empty-icon">✅</div>
+              <div class="empty-text">Selecione um tipo de caso à esquerda.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== HONORARIOS TAB ===== -->
+    <section class="tab-panel" id="tab-honorarios">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">💰 Calculadora de Honorários</div>
+          <div class="pieces-form-content">
+            <div class="form-group">
+              <label class="form-label">Tipo de trabalho</label>
+              <select class="form-select" id="honorarios-tipo"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Horas estimadas</label>
+              <input type="number" class="form-input" id="honorarios-horas" value="0" min="0" step="0.5">
+              <div class="form-hint">0 para valor fixo · >0 para cálculo por hora</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Complexidade (1.0 = normal, 1.5 = alta, 2.0 = complexo)</label>
+              <input type="number" class="form-input" id="honorarios-complexidade" value="1" min="0.5" max="3" step="0.1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Valor da causa (R$)</label>
+              <input type="number" class="form-input" id="honorarios-causa" value="0" min="0" step="100">
+              <div class="form-hint">Para cálculo de percentual em acordos</div>
+            </div>
+            <button class="btn btn-block" onclick="calcularHonorarios()">💰 Calcular</button>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header"><span>Resultado</span></div>
+          <div class="pieces-result-content" id="honorarios-resultado">
+            <div class="empty-state">
+              <div class="empty-icon">💰</div>
+              <div class="empty-title">Calculadora de honorários</div>
+              <div class="empty-text">Baseado na tabela OAB. Ajuste conforme complexidade, região e perfil do cliente.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ===== CONFIG TAB (SIMPLIFICADO) ===== -->
     <section class="tab-panel" id="tab-config">
       <div class="config-grid">
@@ -812,7 +986,7 @@
 
   <!-- FOOTER -->
   <footer class="footer">
-    <div>drfuturo v2.0 · Claude · RAG · DataJud CNJ · 41 Peças · Calculadora Pena/Prazos · Backup · 14 abas</div>
+    <div>drfuturo v3.0 · Claude · Vade Mecum · Áudio · Resumo Cliente · Checklist · Honorários · 19 abas</div>
     <div class="footer-quote">"A defesa técnica começa no inquérito, não na sentença." — Aury Lopes Jr</div>
   </footer>
 </div>
@@ -822,5 +996,40 @@
 
 <script src="app.js"></script>
 <script src="features.js"></script>
+<script src="vade-mecum.js"></script>
+<script src="extras.js"></script>
+<script>
+// Busca Vade Mecum
+function searchVadeMecum() {
+  const query = document.getElementById('vade-search').value.trim();
+  const results = document.getElementById('vade-results');
+
+  if (!query || query.length < 2) {
+    results.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-text">Digite um termo para buscar</div></div>';
+    return;
+  }
+
+  const found = buscarVadeMecum(query);
+
+  if (found.length === 0) {
+    results.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">Nenhum artigo encontrado</div></div>';
+    return;
+  }
+
+  results.innerHTML = found.map(r => `
+    <div class="result-card" style="border-left:3px solid var(--primary);">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+        <div>
+          <span class="tag">${r.codigo} art. ${r.num}</span>
+          ${r.titulo ? `<strong style="color:var(--primary); margin-left:8px;">${escapeHtml(r.titulo)}</strong>` : ''}
+        </div>
+        <button onclick="toggleFavorito('${escapeHtml(r.codigoNome)}','${escapeHtml(r.codigo + ' art. ' + r.num + (r.titulo ? ' — ' + r.titulo : ''))}','','#${r.codigo}-${r.num}')" class="btn-icon" title="Salvar nos favoritos">⭐</button>
+      </div>
+      <div style="font-size:13px; color:var(--fg); line-height:1.6;">${escapeHtml(r.texto)}</div>
+      <div style="font-size:10px; color:var(--muted); margin-top:4px;">${escapeHtml(r.codigoNome)}</div>
+    </div>
+  `).join('');
+}
+</script>
 </body>
 </html>
