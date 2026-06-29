@@ -1073,6 +1073,8 @@ async function generateStrategy() {
 
     result.innerHTML = `<div style="font-family:'Courier New',monospace; font-size:13px; color:var(--fg); white-space:pre-wrap; line-height:1.6;">${escapeHtml(strategy)}</div>`;
     document.getElementById('copy-strat-btn').style.display = 'inline-flex';
+    document.getElementById('strat-docx-btn').style.display = 'inline-flex';
+    document.getElementById('strat-pdf-btn').style.display = 'inline-flex';
     document.getElementById('copy-strat-btn').dataset.content = strategy;
     showToast('Estratégia gerada!', 'success');
   } catch (err) {

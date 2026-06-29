@@ -68,7 +68,11 @@
         <div class="chat-main">
           <div class="chat-header">
             <span class="chat-title" id="chat-title">Novo chat</span>
-            <span class="badge badge-gold">GLM 5.2</span>
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-outline" onclick="exportChatToDocx()" id="chat-docx-btn" style="display:none;">📄 Word</button>
+              <button class="btn btn-sm btn-outline" onclick="exportChatToPDF()" id="chat-pdf-btn" style="display:none;">📑 PDF</button>
+              <span class="badge badge-gold">Claude</span>
+            </div>
           </div>
           <div class="chat-messages" id="chat-messages">
             <div class="empty-state">
@@ -197,7 +201,11 @@
         <div class="pieces-result">
           <div class="result-header">
             <span id="strat-title">Análise estratégica</span>
-            <button class="btn btn-sm btn-outline" onclick="copyStrategy()" id="copy-strat-btn" style="display:none;">📋 Copiar</button>
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-outline" onclick="copyStrategy()" id="copy-strat-btn" style="display:none;">📋 Copiar</button>
+              <button class="btn btn-sm btn-outline" onclick="exportStrategyToDocx()" id="strat-docx-btn" style="display:none;">📄 Word</button>
+              <button class="btn btn-sm btn-outline" onclick="exportStrategyToPDF()" id="strat-pdf-btn" style="display:none;">📑 PDF</button>
+            </div>
           </div>
           <div class="pieces-result-content" id="strat-result">
             <div class="empty-state">
@@ -308,7 +316,11 @@
             <button class="btn btn-sm btn-outline" onclick="backToLive()">← Voltar às notas</button>
             <span class="chat-title">Sustentação Oral</span>
           </div>
-          <button class="btn btn-sm btn-outline" onclick="copyArgument()">📋 Copiar</button>
+          <div class="flex gap-2">
+            <button class="btn btn-sm btn-outline" onclick="copyArgument()">📋 Copiar</button>
+            <button class="btn btn-sm btn-outline" onclick="exportArgumentToDocx()">📄 Word</button>
+            <button class="btn btn-sm btn-outline" onclick="exportArgumentToPDF()">📑 PDF</button>
+          </div>
         </div>
         <div class="pieces-result-content" id="argument-content"></div>
       </div>
@@ -354,7 +366,10 @@
         <div class="pieces-result">
           <div class="result-header">
             <span id="lawsuit-result-title">Detalhes do Processo</span>
-            <button class="btn btn-sm btn-outline" onclick="analyzeLawsuitWithAI()" id="lawsuit-ai-btn" style="display:none;">✦ Análise IA</button>
+            <div class="flex gap-2">
+              <button class="btn btn-sm btn-outline" onclick="analyzeLawsuitWithAI()" id="lawsuit-ai-btn" style="display:none;">✦ Análise IA</button>
+              <button class="btn btn-sm btn-outline" onclick="exportLawsuitAnalysisToPDF()" id="lawsuit-pdf-btn" style="display:none;">📑 PDF</button>
+            </div>
           </div>
           <div class="pieces-result-content" id="lawsuit-result">
             <div class="empty-state">

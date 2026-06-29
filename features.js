@@ -4,88 +4,79 @@
    ============================================================ */
 
 // ============================================================
-// FASE 1: Exportar peças para DOCX e PDF
+// FASE 1: Exportar para DOCX e PDF (genérico)
 // ============================================================
 
-function exportPieceToDocx() {
-  const content = document.getElementById('copy-btn')?.dataset?.content;
+/**
+ * Função genérica para exportar qualquer texto para PDF
+ * @param {string} content - texto (markdown simples)
+ * @param {string} filename - nome do arquivo sem extensão
+ * @param {string} title - título opcional no topo
+ */
+async function exportToPDF(content, filename, title) {
   if (!content) {
-    showToast('Gere uma peça primeiro', 'error');
+    showToast('Nada para exportar', 'error');
     return;
   }
-
-  const pieceType = document.getElementById('result-title')?.textContent || 'peca';
-  const filename = `drfuturo_${pieceType.replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
-
-  // Cria HTML formatado para Word
-  const html = `
-    <html xmlns:o='urn:schemas-microsoft-com:office:office'
-          xmlns:w='urn:schemas-microsoft-com:office:word'
-          xmlns='http://www.w3.org/TR/REC-html40'>
-    <head>
-      <meta charset='utf-8'>
-      <title>${escapeHtml(pieceType)}</title>
-      <style>
-        @page { size: A4; margin: 3cm; }
-        body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; text-align: justify; }
-        h1, h2, h3 { font-family: Arial, sans-serif; }
-        .center { text-align: center; }
-        .right { text-align: right; }
-        .bold { font-weight: bold; }
-      </style>
-    </head>
-    <body>
-      ${content.split('\n').map(line => {
-        if (line.startsWith('# ')) return `<h1>${escapeHtml(line.slice(2))}</h1>`;
-        if (line.startsWith('## ')) return `<h2>${escapeHtml(line.slice(3))}</h2>`;
-        if (line.startsWith('### ')) return `<h3>${escapeHtml(line.slice(4))}</h3>`;
-        if (line.trim() === '') return '<br>';
-        if (line.startsWith('**') && line.endsWith('**')) return `<p class="bold">${escapeHtml(line.slice(2, -2))}</p>`;
-        return `<p>${escapeHtml(line)}</p>`;
-      }).join('\n')}
-    </body>
-    </html>
-  `;
-
-  const blob = new Blob([html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('Word baixado!', 'success');
-}
-
-async function exportPieceToPDF() {
-  const content = document.getElementById('copy-btn')?.dataset?.content;
-  if (!content) {
-    showToast('Gere uma peça primeiro', 'error');
-    return;
-  }
-
-  const pieceType = document.getElementById('result-title')?.textContent || 'peca';
 
   // Cria div temporária com conteúdo formatado
   const div = document.createElement('div');
-  div.style.cssText = 'padding: 40px; font-family: Times New Roman, serif; font-size: 12pt; line-height: 1.5; color: black; background: white; width: 800px;';
-  div.innerHTML = content.split('\n').map(line => {
-    if (line.startsWith('# ')) return `<h1 style="font-family:Arial;">${escapeHtml(line.slice(2))}</h1>`;
-    if (line.startsWith('## ')) return `<h2 style="font-family:Arial;">${escapeHtml(line.slice(3))}</h2>`;
-    if (line.startsWith('### ')) return `<h3 style="font-family:Arial;">${escapeHtml(line.slice(4))}</h3>`;
-    if (line.trim() === '') return '<br>';
-    return `<p style="text-align:justify;">${escapeHtml(line)}</p>`;
-  }).join('');
+  div.style.cssText = 'padding: 50px; font-family: "Times New Roman", serif; font-size: 12pt; line-height: 1.5; color: #000; background: #fff; width: 800px; max-width: 800px;';
 
+  let html = '';
+  if (title) {
+    html += `<h1 style="font-family: Arial, sans-serif; font-size: 18pt; text-align: center; margin-bottom: 30px; color: #0B2545;">${escapeHtml(title)}</h1>`;
+    html += '<hr style="border: 1px solid #0B2545; margin-bottom: 20px;">';
+  }
+
+  const lines = content.split('\n');
+  for (const line of lines) {
+    if (line.startsWith('# ')) {
+      html += `<h1 style="font-family: Arial, sans-serif; font-size: 16pt; color: #0B2545; margin-top: 20px;">${escapeHtml(line.slice(2))}</h1>`;
+    } else if (line.startsWith('## ')) {
+      html += `<h2 style="font-family: Arial, sans-serif; font-size: 14pt; color: #0B2545; margin-top: 16px;">${escapeHtml(line.slice(3))}</h2>`;
+    } else if (line.startsWith('### ')) {
+      html += `<h3 style="font-family: Arial, sans-serif; font-size: 13pt; color: #333; margin-top: 12px;">${escapeHtml(line.slice(4))}</h3>`;
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      html += `<p style="margin-left: 20px; text-align: justify;">• ${escapeHtml(line.slice(2))}</p>`;
+    } else if (line.startsWith('  - ') || line.startsWith('  * ')) {
+      html += `<p style="margin-left: 40px; text-align: justify;">◦ ${escapeHtml(line.slice(4))}</p>`;
+    } else if (line.trim() === '') {
+      html += '<br>';
+    } else if (line.includes('**')) {
+      // Bold markdown
+      const parts = line.split('**');
+      let formatted = '';
+      for (let i = 0; i < parts.length; i++) {
+        if (i % 2 === 0) {
+          formatted += escapeHtml(parts[i]);
+        } else {
+          formatted += `<strong>${escapeHtml(parts[i])}</strong>`;
+        }
+      }
+      html += `<p style="text-align: justify;">${formatted}</p>`;
+    } else {
+      html += `<p style="text-align: justify;">${escapeHtml(line)}</p>`;
+    }
+  }
+
+  // Rodapé
+  html += `<div style="margin-top: 40px; border-top: 1px solid #ccc; padding-top: 10px; text-align: center; font-size: 9pt; color: #666;">
+    Gerado por drfuturo em ${new Date().toLocaleString('pt-BR')}
+  </div>`;
+
+  div.innerHTML = html;
   document.body.appendChild(div);
 
   try {
+    showToast('Gerando PDF...', 'success');
     await html2pdf().set({
-      margin: [30, 30, 30, 30],
-      filename: `drfuturo_${pieceType.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+      margin: [25, 25, 25, 25],
+      filename: `drfuturo_${filename.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: 'avoid-all' }
     }).from(div).save();
     showToast('PDF baixado!', 'success');
   } catch (err) {
@@ -95,19 +86,147 @@ async function exportPieceToPDF() {
   }
 }
 
-function exportStrategyToDocx() {
-  const content = document.getElementById('copy-strat-btn')?.dataset?.content;
+/**
+ * Função genérica para exportar qualquer texto para DOCX (Word)
+ */
+function exportToDocx(content, filename, title) {
   if (!content) {
-    showToast('Gere uma estratégia primeiro', 'error');
+    showToast('Nada para exportar', 'error');
     return;
   }
-  const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'Times New Roman';font-size:12pt;line-height:1.5;text-align:justify;}h1,h2,h3{font-family:Arial;}</style></head><body>${content.split('\n').map(l => l.startsWith('#') ? `<h2>${escapeHtml(l)}</h2>` : `<p>${escapeHtml(l)}</p>`).join('')}</body></html>`;
+
+  let html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>${escapeHtml(title || filename)}</title><style>
+    @page { size: A4; margin: 3cm; }
+    body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; text-align: justify; }
+    h1, h2, h3 { font-family: Arial, sans-serif; color: #0B2545; }
+    h1 { font-size: 16pt; } h2 { font-size: 14pt; } h3 { font-size: 13pt; }
+    .title { text-align: center; font-size: 18pt; font-weight: bold; margin-bottom: 30px; }
+    .footer { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 10px; text-align: center; font-size: 9pt; color: #666; }
+  </style></head><body>`;
+
+  if (title) {
+    html += `<div class="title">${escapeHtml(title)}</div><hr>`;
+  }
+
+  const lines = content.split('\n');
+  for (const line of lines) {
+    if (line.startsWith('# ')) {
+      html += `<h1>${escapeHtml(line.slice(2))}</h1>`;
+    } else if (line.startsWith('## ')) {
+      html += `<h2>${escapeHtml(line.slice(3))}</h2>`;
+    } else if (line.startsWith('### ')) {
+      html += `<h3>${escapeHtml(line.slice(4))}</h3>`;
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      html += `<p style="margin-left:20px;">• ${escapeHtml(line.slice(2))}</p>`;
+    } else if (line.trim() === '') {
+      html += '<br>';
+    } else if (line.includes('**')) {
+      const parts = line.split('**');
+      let formatted = '';
+      for (let i = 0; i < parts.length; i++) {
+        formatted += i % 2 === 0 ? escapeHtml(parts[i]) : `<strong>${escapeHtml(parts[i])}</strong>`;
+      }
+      html += `<p>${formatted}</p>`;
+    } else {
+      html += `<p>${escapeHtml(line)}</p>`;
+    }
+  }
+
+  html += `<div class="footer">Gerado por drfuturo em ${new Date().toLocaleString('pt-BR')}</div>`;
+  html += '</body></html>';
+
   const blob = new Blob([html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'drfuturo_estrategia.doc';
+  a.href = url;
+  a.download = `drfuturo_${filename.replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
   a.click();
+  URL.revokeObjectURL(url);
   showToast('Word baixado!', 'success');
+}
+
+// === Funções específicas por aba ===
+
+function exportPieceToDocx() {
+  const content = document.getElementById('copy-btn')?.dataset?.content;
+  const title = document.getElementById('result-title')?.textContent || 'Peça';
+  exportToDocx(content, title, title);
+}
+
+function exportPieceToPDF() {
+  const content = document.getElementById('copy-btn')?.dataset?.content;
+  const title = document.getElementById('result-title')?.textContent || 'Peça';
+  exportToPDF(content, title, title);
+}
+
+function exportStrategyToDocx() {
+  const content = document.getElementById('copy-strat-btn')?.dataset?.content;
+  exportToDocx(content, 'estrategia', 'Estratégia Defensiva');
+}
+
+function exportStrategyToPDF() {
+  const content = document.getElementById('copy-strat-btn')?.dataset?.content;
+  exportToPDF(content, 'estrategia', 'Estratégia Defensiva');
+}
+
+function exportArgumentToPDF() {
+  const content = document.getElementById('argument-content')?.dataset?.argument;
+  const title = document.getElementById('live-title')?.textContent || 'Sustentação Oral';
+  exportToPDF(content, 'sustentacao_oral', title);
+}
+
+function exportArgumentToDocx() {
+  const content = document.getElementById('argument-content')?.dataset?.argument;
+  const title = document.getElementById('live-title')?.textContent || 'Sustentação Oral';
+  exportToDocx(content, 'sustentacao_oral', title);
+}
+
+function exportChatToPDF() {
+  const conv = STATE.activeConversation;
+  if (!conv || conv.messages.length === 0) {
+    showToast('Selecione uma conversa primeiro', 'error');
+    return;
+  }
+  let content = `# Conversa: ${conv.title}\n\n`;
+  for (const msg of conv.messages) {
+    const role = msg.role === 'user' ? 'VOCÊ' : 'drfuturo (IA)';
+    content += `## ${role}\n${msg.content}\n\n---\n\n`;
+  }
+  exportToPDF(content, 'conversa', conv.title);
+}
+
+function exportChatToDocx() {
+  const conv = STATE.activeConversation;
+  if (!conv || conv.messages.length === 0) {
+    showToast('Selecione uma conversa primeiro', 'error');
+    return;
+  }
+  let content = `# Conversa: ${conv.title}\n\n`;
+  for (const msg of conv.messages) {
+    const role = msg.role === 'user' ? 'VOCÊ' : 'drfuturo (IA)';
+    content += `## ${role}\n${msg.content}\n\n---\n\n`;
+  }
+  exportToDocx(content, 'conversa', conv.title);
+}
+
+function exportLawsuitAnalysisToPDF() {
+  const btn = document.getElementById('lawsuit-ai-btn');
+  if (!btn || !btn.dataset.lawsuit) {
+    showToast('Gere a análise IA primeiro', 'error');
+    return;
+  }
+  const data = JSON.parse(btn.dataset.lawsuit);
+  const analysisDiv = document.querySelector('#lawsuit-result h3');
+  if (!analysisDiv) {
+    showToast('Gere a análise IA primeiro', 'error');
+    return;
+  }
+  // Pega todo o texto após "Análise IA do Processo"
+  const resultDiv = document.getElementById('lawsuit-result');
+  const allText = resultDiv.innerText;
+  const idx = allText.indexOf('Análise IA do Processo');
+  const content = idx >= 0 ? allText.slice(idx) : allText;
+  exportToPDF(content, `processo_${data.numeroProcesso || 'analise'}`, `Análise IA — ${data.numeroProcesso || 'Processo'}`);
 }
 
 // ============================================================
