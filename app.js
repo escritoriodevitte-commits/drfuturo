@@ -1000,6 +1000,8 @@ async function generatePiece() {
     `;
     document.getElementById('result-title').textContent = `Peça · ${piece.name}`;
     document.getElementById('copy-btn').style.display = 'inline-flex';
+    document.getElementById('docx-btn').style.display = 'inline-flex';
+    document.getElementById('pdf-btn').style.display = 'inline-flex';
     document.getElementById('copy-btn').dataset.content = pieceContent;
     showToast('Peça gerada com sucesso!', 'success');
   } catch (err) {

@@ -9,6 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <!-- Bibliotecas para features avançadas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>if (window.pdfjsLib) pdfjsLib.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 </head>
 <body>
 <div class="app">
@@ -40,6 +44,11 @@
     <button class="tab-btn" data-tab="lawsuits">🔎 Processos</button>
     <button class="tab-btn" data-tab="documents">📚 Documentos</button>
     <button class="tab-btn" data-tab="cases">📁 Casos</button>
+    <button class="tab-btn" data-tab="prazos">📅 Prazos</button>
+    <button class="tab-btn" data-tab="pena">⚖️ Pena</button>
+    <button class="tab-btn" data-tab="favoritos">⭐ Favoritos</button>
+    <button class="tab-btn" data-tab="agenda">📆 Agenda</button>
+    <button class="tab-btn" data-tab="templates">📝 Templates</button>
     <button class="tab-btn" data-tab="config">⚙️ Config</button>
   </nav>
 
@@ -145,6 +154,8 @@
             <span id="result-title">Resultado</span>
             <div class="flex gap-2">
               <button class="btn btn-sm btn-outline" onclick="copyResult()" id="copy-btn" style="display:none;">📋 Copiar</button>
+              <button class="btn btn-sm btn-outline" onclick="exportPieceToDocx()" id="docx-btn" style="display:none;">📄 Word</button>
+              <button class="btn btn-sm btn-outline" onclick="exportPieceToPDF()" id="pdf-btn" style="display:none;">📑 PDF</button>
             </div>
           </div>
           <div class="pieces-result-content" id="piece-result">
@@ -372,7 +383,12 @@
             </div>
             <div class="form-group">
               <label class="form-label">Texto do documento *</label>
-              <textarea class="form-textarea" id="doc-text" placeholder="Cole aqui o texto integral do documento (petições, sentenças, contratos, doutrina...)" style="min-height:200px; font-family:monospace; font-size:12px;"></textarea>
+              <div style="margin-bottom:6px;">
+                <input type="file" accept="application/pdf" onchange="handlePDFUpload(event)" id="pdf-upload" style="display:none;">
+                <button class="btn btn-outline btn-sm" onclick="document.getElementById('pdf-upload').click()">📎 Anexar PDF</button>
+                <span style="font-size:10px; color:var(--muted); margin-left:8px;">Extrai texto automaticamente</span>
+              </div>
+              <textarea class="form-textarea" id="doc-text" placeholder="Cole aqui o texto integral do documento (petições, sentenças, contratos, doutrina...) ou anexe um PDF acima" style="min-height:200px; font-family:monospace; font-size:12px;"></textarea>
               <div class="form-hint" id="doc-char-count">0 caracteres</div>
             </div>
             <div class="form-group">
@@ -421,6 +437,189 @@
               <div class="empty-text">Selecione um caso para ver detalhes.</div>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PRAZOS TAB ===== -->
+    <section class="tab-panel" id="tab-prazos">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">📅 Calculadora de Prazos</div>
+          <div class="pieces-form-content">
+            <div class="form-group">
+              <label class="form-label">Tipo de prazo *</label>
+              <select class="form-select" id="prazo-tipo"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Data da intimação *</label>
+              <input type="date" class="form-input" id="prazo-data">
+            </div>
+            <div class="form-group">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px;">
+                <input type="checkbox" id="prazo-recesso" checked>
+                <span>Considerar recesso forense (20/12 a 20/01 + julho)</span>
+              </label>
+            </div>
+            <button class="btn btn-block" onclick="calcularPrazo()">📅 Calcular prazo</button>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header"><span>Resultado</span></div>
+          <div class="pieces-result-content" id="prazo-resultado">
+            <div class="empty-state">
+              <div class="empty-icon">📅</div>
+              <div class="empty-title">Calculadora de prazos processuais</div>
+              <div class="empty-text">Selecione o tipo de prazo e a data da intimação. Calcula dias úteis, feriados e recesso.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PENA TAB ===== -->
+    <section class="tab-panel" id="tab-pena">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">⚖️ Calculadora de Pena</div>
+          <div class="pieces-form-content">
+            <div class="form-group">
+              <label class="form-label">Pena mínima (anos)</label>
+              <input type="number" class="form-input" id="pena-min" value="6" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Pena máxima (anos)</label>
+              <input type="number" class="form-input" id="pena-max" value="20" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Qualificadora (anos a somar)</label>
+              <input type="number" class="form-input" id="pena-qualif" value="0" step="0.5">
+              <div class="form-hint">Ex: homicídio qualificado soma 1/3 a 1/2</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Agravantes (anos a somar)</label>
+              <input type="number" class="form-input" id="pena-agrav" value="0" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Atenuantes (anos a subtrair)</label>
+              <input type="number" class="form-input" id="pena-atenu" value="0" step="0.5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Causa de aumento (fração: 0.5 = 50%)</label>
+              <input type="number" class="form-input" id="pena-aum" value="0" step="0.1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Causa de diminuição (fração: 0.5 = 50%)</label>
+              <input type="number" class="form-input" id="pena-dim" value="0" step="0.1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dias-multa (mínimo)</label>
+              <input type="number" class="form-input" id="pena-mult-min" value="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dias-multa (máximo)</label>
+              <input type="number" class="form-input" id="pena-mult-max" value="360">
+            </div>
+            <button class="btn btn-block" onclick="calcularPena()">⚖️ Calcular pena</button>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header"><span>Resultado</span></div>
+          <div class="pieces-result-content" id="pena-resultado">
+            <div class="empty-state">
+              <div class="empty-icon">⚖️</div>
+              <div class="empty-title">Calculadora de pena</div>
+              <div class="empty-text">Preencha os campos. Calcula pena base, provisória, definitiva, regime e substituição.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FAVORITOS TAB ===== -->
+    <section class="tab-panel" id="tab-favoritos">
+      <div class="pieces-result" style="border:none;">
+        <div class="result-header">
+          <span>⭐ Jurisprudência Favorita</span>
+        </div>
+        <div class="pieces-result-content" id="favoritos-list"></div>
+      </div>
+    </section>
+
+    <!-- ===== AGENDA TAB ===== -->
+    <section class="tab-panel" id="tab-agenda">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">📅 Agendar Audiência</div>
+          <div class="pieces-form-content">
+            <div class="form-group">
+              <label class="form-label">Tipo</label>
+              <select class="form-select" id="agenda-tipo">
+                <option value="custodia">⚖️ Audiência de Custódia</option>
+                <option value="instrucao">📋 Instrução e Julgamento</option>
+                <option value="juri">👥 Tribunal do Júri</option>
+                <option value="alegacoes">🎤 Alegações Finais</option>
+                <option value="sustentacao">📢 Sustentação Oral</option>
+                <option value="outro">📅 Outro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Data *</label>
+              <input type="date" class="form-input" id="agenda-data">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hora</label>
+              <input type="time" class="form-input" id="agenda-hora" value="09:00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Título *</label>
+              <input type="text" class="form-input" id="agenda-titulo" placeholder="Ex: João da Silva — HC 0001234">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Local</label>
+              <input type="text" class="form-input" id="agenda-local" placeholder="Fórum, vara, endereço">
+            </div>
+            <button class="btn btn-block" onclick="addAgendaEvent()">📅 Agendar</button>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header"><span>Próximas audiências</span></div>
+          <div class="pieces-result-content" id="agenda-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TEMPLATES TAB ===== -->
+    <section class="tab-panel" id="tab-templates">
+      <div class="pieces-grid">
+        <div class="pieces-form">
+          <div class="pieces-header">📝 Novo Template</div>
+          <div class="pieces-form-content">
+            <div class="form-group">
+              <label class="form-label">Categoria</label>
+              <select class="form-select" id="tpl-categoria">
+                <option value="Geral">Geral</option>
+                <option value="Petição">Petição</option>
+                <option value="Recurso">Recurso</option>
+                <option value="Defesa">Defesa</option>
+                <option value="Documento">Documento</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nome *</label>
+              <input type="text" class="form-input" id="tpl-nome" placeholder="Ex: Petição genérica de HC">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Conteúdo *</label>
+              <textarea class="form-textarea" id="tpl-conteudo" placeholder="Escreva o template. Use {{variavel}} para campos que serão preenchidos. Ex: {{cliente}}, {{processo}}, {{data}}." style="min-height:200px; font-family:monospace; font-size:12px;"></textarea>
+              <div class="form-hint">Variáveis: {{data}}, {{hora}}, {{cliente}}, {{processo}}, {{cidade}}, {{estado}}</div>
+            </div>
+            <button class="btn btn-block" onclick="saveTemplate()">💾 Salvar template</button>
+          </div>
+        </div>
+        <div class="pieces-result">
+          <div class="result-header"><span>Meus templates</span></div>
+          <div class="pieces-result-content" id="templates-list"></div>
         </div>
       </div>
     </section>
@@ -504,6 +703,20 @@
               </div>
             </details>
 
+            <!-- Backup e Restore -->
+            <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+              <div style="font-size:12px; color:var(--primary); font-weight:600; margin-bottom:8px;">💾 Backup de Dados</div>
+              <div style="font-size:11px; color:var(--muted); margin-bottom:10px;">
+                Exporte todos os seus dados (conversas, casos, peças, audiências, favoritos, agenda, templates) para um arquivo JSON.
+                Importe em outro dispositivo ou navegador.
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-outline btn-sm" onclick="exportarBackup()">📤 Exportar backup</button>
+                <input type="file" accept="application/json" onchange="importarBackup(event)" id="backup-import" style="display:none;">
+                <button class="btn btn-outline btn-sm" onclick="document.getElementById('backup-import').click()">📥 Importar backup</button>
+              </div>
+            </div>
+
             <div id="test-result" class="mt-3"></div>
           </div>
         </div>
@@ -584,7 +797,7 @@
 
   <!-- FOOTER -->
   <footer class="footer">
-    <div>drfuturo v1.0 · GLM 5.2 · RAG · DataJud CNJ · Base CP/CPP/CF · 41 Peças · 5 Audiências</div>
+    <div>drfuturo v2.0 · Claude · RAG · DataJud CNJ · 41 Peças · Calculadora Pena/Prazos · Backup · 14 abas</div>
     <div class="footer-quote">"A defesa técnica começa no inquérito, não na sentença." — Aury Lopes Jr</div>
   </footer>
 </div>
@@ -593,5 +806,6 @@
 <div class="toast-container" id="toast-container"></div>
 
 <script src="app.js"></script>
+<script src="features.js"></script>
 </body>
 </html>
